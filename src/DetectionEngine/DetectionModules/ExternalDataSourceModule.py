@@ -1,5 +1,6 @@
 import os
 import vt
+import google.generativeai as genai
 from groq import Groq
 import requests
 import json
@@ -17,8 +18,10 @@ import re
 
 # load API keys from .env file
 load_dotenv()
-URLSCAN_API_KEY = os.getenv("URLSCAN_API_KEY")
 VT_API_KEY = os.getenv("VT_API_KEY")
+URLSCAN_API_KEY = os.getenv("URLSCAN_API_KEY")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 def extract_urls(text: str) -> list[str]:
     """
@@ -164,10 +167,81 @@ class UrlScan(Module):
     def __str__(self):
         return "UrlScan"
 
+class GeminiModel(Module):
+    def __init__(self, mail):
+        genai.configure(api_key=GOOGLE_API_KEY)
+        self.model = genai.GenerativeModel('gemini-1.5-flash')
+        self.mail = mail
+    
+    def query(self, query):
+        return self.model.generate_content(query)
+    
+    def provide_verdict(self):
+        # query mail to get classification verdict
+        answer = self.query(f"""
+                            The following text is a mail, please classify it as 'suspicious' or 'benign'
+                            and return only one word - the classification
+
+                            The mail:
+                            {self.mail}
+                            """
+                            )
+        if "suspicious" in answer.text.lower():
+            return MALICIOUS
+        elif "benign" in answer.text.lower():
+            return BENIGN
+        else:
+            return -1
+
+    def __str__(self):
+        return "Gemini"
+
+class GroqModel(Module):
+    def __init__(self, mail):
+        self.client = Groq(
+            api_key=GROQ_API_KEY,
+        )
+        self.mail = mail
+    
+    def query(self, query):        
+        chat_completion = self.client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": query,
+            }
+        ],
+        model="llama3-8b-8192",
+        )
+        return chat_completion.choices[0].message.content
+    
+    def provide_verdict(self):
+        # query mail to get classification verdict
+        query = f"""
+                The following text is a mail, please classify it as 'suspicious' or 'benign'
+                and return only one word - the classification
+
+                The mail:
+                {self.mail}
+                """
+        verdict = self.query(query)
+        if "suspicious" in verdict.lower():
+            return MALICIOUS
+        elif "benign" in verdict.lower():
+            return BENIGN
+        else:
+            return -1 
+    
+    def __str__(self):
+        return "Groq"
+
 class ExternalDataSourcesModule(Module):
     def __init__(self, mail):
         # init modules
-        self.modules = [VirusTotal(mail), UrlScan(mail)]
+        self.modules = [VirusTotal(mail), 
+                        UrlScan(mail), 
+                        GeminiModel(mail), 
+                        GroqModel(mail)]
     
     def provide_verdict(self):
         verdicts = {}

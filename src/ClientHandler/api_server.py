@@ -3,6 +3,7 @@ import json
 from flask import Flask, jsonify, request
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
 from src.DBHandler import DBHandler
+from DetectionEngine.DetectionPipeline import analyze_mail
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -14,12 +15,6 @@ app = Flask("Mailicious")
 # Configure your JWT secret key
 app.config['JWT_SECRET_KEY'] = JWT_SECRET_KEY
 jwt = JWTManager(app)
-
-def analyze_mail(customer_id, mail):
-  return True
-
-def is_customer(id):
-  return True
 
 @app.route("/login", methods=["POST"])
 def login():
