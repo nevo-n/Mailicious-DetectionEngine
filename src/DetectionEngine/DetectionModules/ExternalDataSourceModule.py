@@ -253,7 +253,7 @@ class ExternalDataSourcesModule(Module):
             return BENIGN
     
     def __str__(self):
-        return "ExternalDataSourceModule"
+        return "ExternalDataSources"
 
 def main():
     pass
