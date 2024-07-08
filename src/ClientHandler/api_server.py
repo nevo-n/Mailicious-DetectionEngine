@@ -2,8 +2,8 @@ import os
 import json
 from flask import Flask, jsonify, request
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
-from DetectionEngine.DetectionPipeline import analyze_mail
-from src.DBHandler import DBHandler
+from src.DetectionEngine.DetectionPipeline import analyze_mail
+from src.DBHandler.DBHandler import DBHandler
 from dotenv import load_dotenv
 
 app = Flask("Mailicious")

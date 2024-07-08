@@ -6,3 +6,4 @@ groq==0.8.0
 python-dotenv==1.0.1
 vt-py==0.18.2
 requests==2.25.1
+Werkzeug==2.2.2
