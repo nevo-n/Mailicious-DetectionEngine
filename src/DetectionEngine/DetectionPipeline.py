@@ -1,6 +1,8 @@
 from src.DetectionEngine.DetectionModules.ExternalDataSourceModule import ExternalDataSourcesModule
 from src.DBHandler.DBHandler import DBHandler
 from src.consts import MALICIOUS, ERROR_CODE
+import json
+import re
 
 class DetectionPipeline:
     def __init__(self, mail):
@@ -21,26 +23,19 @@ def analyze_mail(mail):
     4) returns the overall verdict
     """
     db_handler = DBHandler()
+    data=re.sub(r'\s+', ' ', json.loads(mail)["body"]).strip()
     
     # analyze mail in all detection-modules
-    modules_verdicts = DetectionPipeline(mail["body"]).analyze() # TODO: insert mail handeling to detection pipeline (so we send it 'mail')
-
-    # extract fields from mail's json
-    sender = mail["from"]
-    receiver = mail["to"]
-    email_datetime = mail["date"]
-    subject = mail["subject"]
-    body = mail["body"]
-    content = {"subject": subject, "body": body}
+    modules_verdicts = DetectionPipeline(data).analyze() # TODO: insert mail handeling to detection pipeline (so we send it 'mail')
 
     try:
         # Save mail in DB
-        create_mail_response = db_handler.save_mail(mail)
+        create_mail_response = db_handler.save_mail(json.loads(mail))
         # Get mail's ID from responde
         mail_id = create_mail_response["id"]
     except:
         print("Unable to save mail in db")
-        return ERROR_CODE
+        #return ERROR_CODE
 
     malicious_flag = False
     for module in modules_verdicts.keys():

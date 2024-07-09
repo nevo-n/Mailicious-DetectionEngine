@@ -15,6 +15,7 @@ from src.DetectionEngine.consts import (
 )
 from dotenv import load_dotenv
 import re
+import asyncio
 
 # load API keys from .env file
 load_dotenv()
@@ -33,6 +34,11 @@ def extract_urls(text: str) -> list[str]:
 
 class VirusTotal(Module):
     def __init__(self, mail):
+        try:
+            loop = asyncio.get_event_loop()
+        except RuntimeError:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
         self.client = vt.Client(VT_API_KEY)
         self.mail = mail
 
