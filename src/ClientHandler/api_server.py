@@ -40,7 +40,7 @@ def send_data_for_analysis():
    verdict = analyze_mail(json.loads(request.data))
 
    # return verdict accordingly
-   if verdict:
+   if verdict in [True, False]:
       return jsonify({'verdict': f"{verdict}"}), 200
    else:
       return jsonify({'error': "internal"}), 500

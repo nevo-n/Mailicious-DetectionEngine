@@ -3,7 +3,7 @@ import requests
 from dotenv import load_dotenv
 from src.consts import MALICIOUS, BENIGN, ERROR_CODE
 from src.DBHandler.consts import Verdict_ID
-
+from datetime import datetime
 
 # load db info from .env file
 load_dotenv()
@@ -21,7 +21,11 @@ class DBHandler():
             "username": username,
             "password": password
         }
-        response = requests.post(url, data=payload)
+        headers = {
+            "Content-Type": "application/json",
+            "accept": "application/json"
+        }
+        response = requests.post(url, json=payload, headers=headers)
         if response.status_code == 200:
             token = response.json().get("access_token")
             headers = {
@@ -35,10 +39,13 @@ class DBHandler():
         # extract fields from mail's json
         sender = mail["from"]
         receiver = mail["to"]
-        email_datetime = mail["date"]
+        date_str = mail["date"]
+        parsed_date = datetime.strptime(date_str, '%a, %d %b %Y %H:%M:%S %z')
+        email_datetime = parsed_date.strftime('%Y-%m-%dT%H:%M:%S')
         subject = mail["subject"]
         body = mail["body"]
-        content = {"subject": subject, "body": body}
+        #content = {"subject": subject, "body": body}
+        content=body
 
         return self._save_mail(sender, receiver, email_datetime, content)
     
@@ -55,15 +62,33 @@ class DBHandler():
     
     def save_mail_analysis(self, email_id, module, module_verdict):
         # get verdict_id
+        response_verdicts = self._get_all_verdicts(self.headers)
         if module_verdict == MALICIOUS:
-            verdict_id = Verdict_ID.MALICIOUS.value
+            verdict = Verdict_ID.MALICIOUS.value
         elif module_verdict == BENIGN:
-            verdict_id = Verdict_ID.BENIGN.value
+            verdict = Verdict_ID.BENIGN.value
         else:
             print("error verdict: {} for module: {}".format(module_verdict, module))
             return ERROR_CODE
-        # module (key) is the analysis id
-        analysis_id = module
+
+        verdict_id = -1
+        for item in response_verdicts:
+            if item["name"] == verdict:
+                verdict_id = item["id"]
+                break
+        
+        # get analysis id
+        response_analysis = self._get_all_analysis_types(self.headers)
+        
+        analysis_id = -1
+        for item in response_analysis:
+            if item["name"] == module:
+                analysis_id = item["id"]
+                break
+
+        if verdict_id == -1 or analysis_id == -1:
+            return ERROR_CODE
+
         return self._save_mail_analysis(email_id, analysis_id, verdict_id)
     
     def _save_mail_analysis(self, email_id, analysis_id, verdict_id):
@@ -84,4 +109,14 @@ class DBHandler():
         """
         login_headers = self._login(username, password)
         return login_headers is not None
+
+    def _get_all_verdicts(self, headers):
+        url = f"{DB_URL}/enum_verdicts/"
+        response = requests.get(url, headers=headers)
+        return response.json()
+
+    def _get_all_analysis_types(self, headers):
+        url = f"{DB_URL}/enum_analysis/"
+        response = requests.get(url, headers=headers)
+        return response.json()
     

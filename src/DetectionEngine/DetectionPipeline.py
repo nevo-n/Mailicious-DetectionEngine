@@ -1,5 +1,5 @@
 from src.DetectionEngine.DetectionModules.ExternalDataSourceModule import ExternalDataSourcesModule
-from src.DBHandler import DBHandler
+from src.DBHandler.DBHandler import DBHandler
 from src.consts import MALICIOUS, ERROR_CODE
 
 class DetectionPipeline:
