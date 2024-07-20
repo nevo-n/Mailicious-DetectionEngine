@@ -120,3 +120,7 @@ class DBHandler():
         response = requests.get(url, headers=headers)
         return response.json()
     
+    def get_blacklists_grouped(self):
+        url = f"{DB_URL}/blacklist/grouped"
+        response = requests.get(url, headers=self.headers)
+        return response.json()
