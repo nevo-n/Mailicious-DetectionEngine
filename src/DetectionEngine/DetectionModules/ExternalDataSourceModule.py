@@ -260,9 +260,3 @@ class ExternalDataSourcesModule(Module):
     
     def __str__(self):
         return "ExternalDataSources"
-
-def main():
-    pass
-    
-if __name__ == "__main__":
-    main()
