@@ -3,7 +3,12 @@ from src.DetectionEngine.DetectionModules.Module import Module
 from src.DetectionEngine.consts import (
     MALICIOUS, 
     BENIGN, 
+    IP_ADDRESS_REGEX
 )
+import re
+import requests
+
+URL_IPAPI = 'http://ip-api.com/json/'
 
 class BlackListModule(Module):
     def __init__(self, mail):
@@ -16,7 +21,7 @@ class BlackListModule(Module):
         This method checks whether the given mail sender mail
         is from the domain 'domain'
         """
-        return self.mail["sender"].lower().endswith(domain.lower())
+        return self.mail["from"].lower().endswith(domain.lower())
 
     def _check_mail_subject(self, subject):
         """
@@ -25,19 +30,18 @@ class BlackListModule(Module):
         """
         return subject.lower() in self.mail["subject"].lower()
 
-    def _check_mail_asn(self, asn):
-        """
-        This method checks whether the given mail ASNs contains
-        the given 'asn'
-        """
-        pass # TODO
-
     def _check_sender_country(self, country):
         """
-        This method checks whether one of the given mail ASNs 
-        IPs are from the country 'country'
+        This method checks whether one of the given mail SPF IPs are from the country 'country'
         """
-        pass # TODO
+        ip_addresses = re.findall(IP_ADDRESS_REGEX, self.mail["Received-SPF"])
+        for ip in list(set(ip_addresses)):
+            resp = requests.get(URL_IPAPI + ip, params={'fields': 'status,country,country_code'})
+            info = resp.json()
+            if info["status"] == 'success':
+                if country.lower() == info["country"].lower():
+                    return MALICIOUS
+        return BENIGN
 
     def provide_verdict(self):
         """
@@ -48,7 +52,7 @@ class BlackListModule(Module):
             field = entry["field_name"]
             values_array = entry["values"].split(",")
 
-            # Check against the suitable blacklist cfunction
+            # Check against the suitable blacklist function
             if field.lower() == "domain":
                 for value in values_array:
                     if self._check_sender_domain(value):
@@ -56,10 +60,6 @@ class BlackListModule(Module):
             elif field.lower() == "subject":
                 for value in values_array:
                     if self._check_mail_subject(value):
-                        return MALICIOUS
-            elif field.lower() == "asn":
-                for value in values_array:
-                    if self._check_mail_asn(value):
                         return MALICIOUS
             pass
         
