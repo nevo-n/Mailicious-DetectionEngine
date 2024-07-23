@@ -43,18 +43,17 @@ class DBHandler():
         parsed_date = datetime.strptime(date_str, '%a, %d %b %Y %H:%M:%S %z')
         email_datetime = parsed_date.strftime('%Y-%m-%dT%H:%M:%S')
         subject = mail["subject"]
-        body = mail["body"]
-        #content = {"subject": subject, "body": body}
-        content=body
+        content = mail["body"]
 
-        return self._save_mail(sender, receiver, email_datetime, content)
+        return self._save_mail(sender, receiver, email_datetime, subject, content)
     
-    def _save_mail(self, sender, receiver, email_datetime, content):
+    def _save_mail(self, sender, receiver, email_datetime, subject, content):
         url = f"{DB_URL}/emails/"
         payload = {
             "sender": sender,
-            "receiver": receiver,
+            "recipients": receiver,
             "email_datetime": email_datetime,
+            "subject": subject,
             "content": content
         }
         response = requests.post(url, json=payload, headers=self.headers)
@@ -96,7 +95,8 @@ class DBHandler():
         payload = {
             "email_id": email_id,
             "analysis_id": analysis_id,
-            "verdict_id": verdict_id
+            "verdict_id": verdict_id,
+            "created_on": datetime.now().isoformat()
         }
         response = requests.post(url, json=payload, headers=self.headers)
         return response.json()
@@ -116,7 +116,7 @@ class DBHandler():
         return response.json()
 
     def _get_all_analysis_types(self, headers):
-        url = f"{DB_URL}/enum_analysis/"
+        url = f"{DB_URL}/enum_modules/"
         response = requests.get(url, headers=headers)
         return response.json()
     
