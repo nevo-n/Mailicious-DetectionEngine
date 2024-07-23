@@ -1,12 +1,12 @@
 from src.DetectionEngine.DetectionModules.ExternalDataSourceModule import ExternalDataSourcesModule
+from src.DetectionEngine.DetectionModules.BlackListModule import BlackListModule
 from src.DBHandler.DBHandler import DBHandler
 from src.consts import MALICIOUS, ERROR_CODE
 import json
-import re
 
 class DetectionPipeline:
     def __init__(self, mail):
-        self.modules = [ExternalDataSourcesModule(mail)]
+        self.modules = [BlackListModule(mail), ExternalDataSourcesModule(mail)]
     
     def analyze(self):
         modules_verdicts = {}
@@ -23,10 +23,9 @@ def analyze_mail(mail):
     4) returns the overall verdict
     """
     db_handler = DBHandler()
-    data=re.sub(r'\s+', ' ', json.loads(mail)["body"]).strip()
     
     # analyze mail in all detection-modules
-    modules_verdicts = DetectionPipeline(data).analyze() # TODO: insert mail handeling to detection pipeline (so we send it 'mail')
+    modules_verdicts = DetectionPipeline(json.loads(mail)).analyze()
 
     try:
         # Save mail in DB

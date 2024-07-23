@@ -243,6 +243,8 @@ class GroqModel(Module):
 
 class ExternalDataSourcesModule(Module):
     def __init__(self, mail):
+        # TODO: move this logic inside the sub-modules
+        mail = re.sub(r'\s+', ' ', mail["body"]).strip()
         # init modules
         self.modules = [VirusTotal(mail), 
                         UrlScan(mail), 
