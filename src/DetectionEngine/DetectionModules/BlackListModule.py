@@ -30,7 +30,7 @@ class BlackListModule(Module):
         """
         return subject.lower() in self.mail["subject"].lower()
 
-    def _check_sender_country(self, country):
+    def _check_country(self, country):
         """
         This method checks whether one of the given mail SPF IPs are from the country 'country'
         """
@@ -40,8 +40,8 @@ class BlackListModule(Module):
             info = resp.json()
             if info["status"] == 'success':
                 if country.lower() == info["country"].lower():
-                    return MALICIOUS
-        return BENIGN
+                    return True
+        return False
 
     def provide_verdict(self):
         """
@@ -61,8 +61,10 @@ class BlackListModule(Module):
                 for value in values_array:
                     if self._check_mail_subject(value):
                         return MALICIOUS
-            pass
-        
+            elif field.lower() == "country":
+                for value in values_array:
+                    if self._check_country(value):
+                        return MALICIOUS
         return BENIGN
     
     def __str__(self):
