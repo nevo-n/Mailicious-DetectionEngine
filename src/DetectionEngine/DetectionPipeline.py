@@ -1,12 +1,13 @@
 from src.DetectionEngine.DetectionModules.ExternalDataSourceModule import ExternalDataSourcesModule
 from src.DetectionEngine.DetectionModules.BlackListModule import BlackListModule
+from src.DetectionEngine.DetectionModules.HebrewMailClassifierModule import HebrewMailClassifierModule
 from src.DBHandler.DBHandler import DBHandler
 from src.consts import MALICIOUS, ERROR_CODE
 import json
 
 class DetectionPipeline:
     def __init__(self, mail):
-        self.modules = [BlackListModule(mail), ExternalDataSourcesModule(mail)]
+        self.modules = [BlackListModule(mail), ExternalDataSourcesModule(mail), HebrewMailClassifierModule(mail)]
     
     def analyze(self):
         modules_verdicts = {}
