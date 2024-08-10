@@ -124,3 +124,13 @@ class DBHandler():
         url = f"{DB_URL}/blacklist/grouped"
         response = requests.get(url, headers=self.headers)
         return response.json()
+
+    def get_all_analysis_types(self):
+        url = f"{DB_URL}/enum_modules/"
+        response = requests.get(url, headers=self.headers)
+        return response.json()
+
+    def get_email_decision(self, email_id):
+        url = f"{DB_URL}/emails/decision/{email_id}"
+        response = requests.get(url, headers=self.headers)
+        return response.json()
