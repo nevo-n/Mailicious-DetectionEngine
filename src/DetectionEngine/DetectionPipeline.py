@@ -2,12 +2,21 @@ from src.DetectionEngine.DetectionModules.ExternalDataSourceModule import Extern
 from src.DetectionEngine.DetectionModules.BlackListModule import BlackListModule
 from src.DetectionEngine.DetectionModules.HebrewMailClassifierModule import HebrewMailClassifierModule
 from src.DBHandler.DBHandler import DBHandler
-from src.consts import MALICIOUS, ERROR_CODE
 import json
 
 class DetectionPipeline:
-    def __init__(self, mail):
-        self.modules = [BlackListModule(mail), ExternalDataSourcesModule(mail), HebrewMailClassifierModule(mail)]
+    def __init__(self, active_modules_names, mail):
+        self.modules = []
+        for module_name in active_modules_names:
+            if module_name == BlackListModule.__str__():
+                self.modules.append(BlackListModule(mail))
+                continue
+            if module_name == ExternalDataSourcesModule.__str__():
+                self.modules.append(ExternalDataSourcesModule(mail))
+                continue
+            if module_name == HebrewMailClassifierModule.__str__():
+                self.modules.append(HebrewMailClassifierModule(mail))
+                continue
     
     def analyze(self):
         modules_verdicts = {}
@@ -24,9 +33,13 @@ def analyze_mail(mail):
     4) returns the overall verdict
     """
     db_handler = DBHandler()
+
+    # get all detection modules the are 'turned on'
+    active_modules = db_handler.get_all_analysis_types()
+    active_modules_names = [entry["name"] for entry in active_modules if entry["enabled"]]
     
     # analyze mail in all detection-modules
-    modules_verdicts = DetectionPipeline(json.loads(mail)).analyze()
+    modules_verdicts = DetectionPipeline(active_modules_names, json.loads(mail)).analyze()
 
     try:
         # Save mail in DB
@@ -35,19 +48,16 @@ def analyze_mail(mail):
         mail_id = create_mail_response["id"]
     except:
         print("Unable to save mail in db")
-        #return ERROR_CODE
 
-    malicious_flag = False
     for module in modules_verdicts.keys():
         module_verdict = modules_verdicts[module]
-        # get verdict_id
-        if module_verdict == MALICIOUS:
-            malicious_flag = True
-            
         db_handler.save_mail_analysis(mail_id, module, module_verdict)
     
-    # return overall verdict
-    return malicious_flag
+    # get overall verdict (block\allow)
+    decision = db_handler.get_all_analysis_types(mail_id)
+    
+    # block = True, allow = False
+    return decision
 
 
 def main():
