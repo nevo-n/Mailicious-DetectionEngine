@@ -1,7 +1,7 @@
 import os
 import requests
 from dotenv import load_dotenv
-from src.consts import MALICIOUS, BENIGN, ERROR_CODE
+from src.consts import MALICIOUS, SUSPICIOUS, BENIGN, ERROR_CODE
 from src.DBHandler.consts import Verdict_ID
 from datetime import datetime
 
@@ -64,6 +64,8 @@ class DBHandler():
         response_verdicts = self._get_all_verdicts(self.headers)
         if module_verdict == MALICIOUS:
             verdict = Verdict_ID.MALICIOUS.value
+        elif module_verdict == SUSPICIOUS:
+            verdict = Verdict_ID.SUSPICIOUS.value
         elif module_verdict == BENIGN:
             verdict = Verdict_ID.BENIGN.value
         else:

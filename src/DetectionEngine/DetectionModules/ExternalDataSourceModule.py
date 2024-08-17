@@ -6,7 +6,8 @@ import requests
 import json
 from src.DetectionEngine.DetectionModules.Module import Module
 from src.DetectionEngine.consts import (
-    MALICIOUS, 
+    MALICIOUS,
+    SUSPICIOUS,
     BENIGN, 
     URL_REGEX, 
     MALICIOUS_URL_THRESHOLD, 
@@ -102,18 +103,22 @@ class VirusTotal(Module):
             try:
                 # try query it if it exists in VT's DB
                 verdict = self.query_url(url)
-                if(verdict.last_analysis_stats["malicious"] >= MALICIOUS_URL_THRESHOLD or 
-                   verdict.last_analysis_stats["suspicious"] >= SUSPICIOUS_URL_THRESHOLD):
+                if verdict.last_analysis_stats["malicious"] >= MALICIOUS_URL_THRESHOLD:
                     self.close()
                     return MALICIOUS
+                elif verdict.last_analysis_stats["suspicious"] >= SUSPICIOUS_URL_THRESHOLD:
+                    self.close()
+                    return SUSPICIOUS
             except:
                 try:
                     # if it does not exist in VT's DB, scan it
                     verdict = self.scan_url(url)
-                    if(verdict.stats["malicious"] >= MALICIOUS_URL_THRESHOLD or 
-                    verdict.stats["suspicious"] >= SUSPICIOUS_URL_THRESHOLD):
+                    if verdict.stats["malicious"] >= MALICIOUS_URL_THRESHOLD:
                         self.close()
                         return MALICIOUS
+                    elif verdict.stats["suspicious"] >= SUSPICIOUS_URL_THRESHOLD:
+                        self.close()
+                        return SUSPICIOUS
                 except:
                     continue
             
@@ -257,6 +262,8 @@ class ExternalDataSourcesModule(Module):
             verdicts[module.__str__()] = module.verdict()
         if MALICIOUS in list(verdicts.values()):
             return MALICIOUS
+        elif SUSPICIOUS in list(verdicts.values()):
+            return SUSPICIOUS
         else:
             return BENIGN
     

@@ -1,4 +1,5 @@
-MALICIOUS = 1
+MALICIOUS = 2
+SUSPICIOUS = 1
 BENIGN = 0
 
 # regex to find urls and websites within a text
