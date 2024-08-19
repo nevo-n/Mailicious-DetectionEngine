@@ -1,6 +1,8 @@
 from src.DetectionEngine.DetectionModules.ExternalDataSourceModule import ExternalDataSourcesModule
 from src.DetectionEngine.DetectionModules.BlackListModule import BlackListModule
 from src.DetectionEngine.DetectionModules.HebrewMailClassifierModule import HebrewMailClassifierModule
+from src.DetectionEngine.DetectionModules.BigDataModule import BigDataModule
+from src.DetectionEngine.DetectionModules.ForensicsModule import ForensicsModule
 from src.DBHandler.DBHandler import DBHandler
 import json
 
@@ -16,6 +18,12 @@ class DetectionPipeline:
                 continue
             if module_name == HebrewMailClassifierModule.__str__():
                 self.modules.append(HebrewMailClassifierModule(mail))
+                continue
+            if module_name == BigDataModule.__str__():
+                self.modules.append(BigDataModule(mail))
+                continue
+            if module_name == ForensicsModule.__str__():
+                self.modules.append(ForensicsModule(mail))
                 continue
     
     def analyze(self):

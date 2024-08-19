@@ -9,10 +9,9 @@ from src.DetectionEngine.consts import (
     MALICIOUS,
     SUSPICIOUS,
     BENIGN,
-    MALICIOUS_URL_THRESHOLD, 
-    SUSPICIOUS_URL_THRESHOLD, 
 )
 from src.DetectionEngine.utils.general_utils import extract_urls
+from src.DetectionEngine.utils.vt_utils import VT
 from dotenv import load_dotenv
 import re
 import asyncio
@@ -34,87 +33,16 @@ class VirusTotal(Module):
         self.client = vt.Client(VT_API_KEY)
         self.mail = mail
 
-    def close(self):
-        self.client.close()
-    
-    # for future compatibility
-    def query_file_hash(self, hash):
-        """
-        Query file stats and reputation
-
-        hash type: SHA-256/SHA-1/MD5
-        Return type: file
-        some examples:
-            file.size
-            file.sha256
-            file.type_tag
-            file.last_analysis_stats
-        """
-        return self.client.get_object(rf"/files/{hash}")
-
-    # for future compatibility
-    def scan_file(self, file_path):
-        """
-        Actively scan a file
-        """
-        with open(file_path, "rb") as f:
-            analysis = self.client.scan_file(f, wait_for_completion=True)
-        return analysis
-    
-    # for future compatibility
-    def download_file(self, hash, path):
-        """
-        Download a file by it's hash
-        """
-        with open(path, "wb") as f:
-            self.client.download_file(hash, f)
-    
-    def query_url(self, url):
-        """
-        Query a url for stats and reputation
-
-        Return type: url
-        some examples:
-            url.times_submitted
-            url.last_analysis_stats
-        """
-        url_id = vt.url_id(url)
-        return self.client.get_object(rf"/urls/{url_id}")
-    
-    def scan_url(self, url):
-        """
-        Actively scan a url
-        """
-        return self.client.scan_url(url, wait_for_completion=True)
-
     def provide_verdict(self):
         # extract urls from mail
         urls = extract_urls(self.mail)
+        vt = VT(self.client)
+        best = BENIGN
+        # iterate the urls and check each one's verdict using VT
         for url in urls:
-            try:
-                # try query it if it exists in VT's DB
-                verdict = self.query_url(url)
-                if verdict.last_analysis_stats["malicious"] >= MALICIOUS_URL_THRESHOLD:
-                    self.close()
-                    return MALICIOUS
-                elif verdict.last_analysis_stats["suspicious"] >= SUSPICIOUS_URL_THRESHOLD:
-                    self.close()
-                    return SUSPICIOUS
-            except:
-                try:
-                    # if it does not exist in VT's DB, scan it
-                    verdict = self.scan_url(url)
-                    if verdict.stats["malicious"] >= MALICIOUS_URL_THRESHOLD:
-                        self.close()
-                        return MALICIOUS
-                    elif verdict.stats["suspicious"] >= SUSPICIOUS_URL_THRESHOLD:
-                        self.close()
-                        return SUSPICIOUS
-                except:
-                    continue
-            
-        self.close()
-        return BENIGN
+            best = max(best, vt.provide_url_verdict(url))
+        vt.close()
+        return best
     
     def __str__(self):
         return "VirusTotal"

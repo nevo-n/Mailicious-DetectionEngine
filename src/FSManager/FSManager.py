@@ -1,6 +1,7 @@
 import os
 import hashlib
 import datetime
+from src.DetectionEngine.utils.general_utils import calculate_hash
 from dotenv import load_dotenv
 
 # load API keys from .env file
@@ -22,7 +23,7 @@ class FileSaver:
     def save_file(self, file):
         current_date = datetime.datetime.now().strftime("%Y-%m-%d")
 
-        file_hash = self._calculate_hash(file)
+        file_hash = calculate_hash(file)
 
         # Create the folder path
         folder_path = os.path.join(self.base_folder, current_date)
@@ -39,11 +40,3 @@ class FileSaver:
 
         # Return the absolute path
         return os.path.abspath(destination_path)
-
-    def _calculate_hash(self, file):
-        hasher = hashlib.sha256()
-        file.stream.seek(0)  # Ensure the stream is at the beginning
-        buf = file.read()
-        hasher.update(buf)
-        file.stream.seek(0)  # Reset the stream position after reading
-        return hasher.hexdigest()
