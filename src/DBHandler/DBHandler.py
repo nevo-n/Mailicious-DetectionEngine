@@ -136,3 +136,21 @@ class DBHandler():
         url = f"{DB_URL}/emails/decision/{email_id}"
         response = requests.get(url, headers=self.headers)
         return response.json()
+    
+    def get_sender_day_mails_with_link_reputation(self, sender):
+        url = f"{DB_URL}/get_sender_day_mails_with_link_reputation"
+        payload = {"sender": sender}
+        response = requests.post(url, json=payload, headers=self.headers)
+        return response.json()
+
+    def get_sender_day_mails_with_attachment_reputation(self,sender):
+        url = f"{DB_URL}/get_sender_day_mails_with_attachment_reputation"
+        payload = {"sender": sender}
+        response = requests.post(url, json=payload, headers=self.headers)
+        return response.json()   
+
+    def sender_domain_reputation(self, domain):
+        url = f"{DB_URL}/sender_domain_reputation"
+        payload = {"sender_domain": domain}
+        response = requests.post(url, json=payload, headers=self.headers)
+        return response.json()

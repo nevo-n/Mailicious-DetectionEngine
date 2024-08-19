@@ -8,12 +8,11 @@ from src.DetectionEngine.DetectionModules.Module import Module
 from src.DetectionEngine.consts import (
     MALICIOUS,
     SUSPICIOUS,
-    BENIGN, 
-    URL_REGEX, 
+    BENIGN,
     MALICIOUS_URL_THRESHOLD, 
     SUSPICIOUS_URL_THRESHOLD, 
-    REG_STRIP_CHARS
 )
+from src.DetectionEngine.utils.general_utils import extract_urls
 from dotenv import load_dotenv
 import re
 import asyncio
@@ -24,14 +23,6 @@ VT_API_KEY = os.getenv("VT_API_KEY")
 URLSCAN_API_KEY = os.getenv("URLSCAN_API_KEY")
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-
-def extract_urls(text: str) -> list[str]:
-    """
-    This function returns a list of urls\websites extracted from a given text
-    """
-    urls = re.findall(URL_REGEX, text)
-    urls_stripped = [url.strip(REG_STRIP_CHARS) for url in urls]
-    return urls_stripped
 
 class VirusTotal(Module):
     def __init__(self, mail):
