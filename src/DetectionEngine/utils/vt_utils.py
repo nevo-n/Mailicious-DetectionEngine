@@ -66,16 +66,18 @@ class VT:
     def provide_file_verdict(self, hash, file_path):
         try:
             verdict = self.query_file_hash(hash)
-            if(verdict.last_analysis_stats["malicious"] >= MALICIOUS_FILE_THRESHOLD or 
-                verdict.last_analysis_stats["suspicious"] >= SUSPICIOUS_FILE_THRESHOLD):
-                    return MALICIOUS
+            if verdict.last_analysis_stats["malicious"] >= MALICIOUS_FILE_THRESHOLD:
+                return MALICIOUS
+            elif verdict.last_analysis_stats["suspicious"] >= SUSPICIOUS_FILE_THRESHOLD:
+                return SUSPICIOUS
         except:
             try:
                 # if it does not exist in VT's DB, scan it
                 verdict = self.scan_file(file_path) # file path neede
-                if(verdict.stats["malicious"] >= MALICIOUS_FILE_THRESHOLD or 
-                verdict.stats["suspicious"] >= SUSPICIOUS_FILE_THRESHOLD):
+                if verdict.stats["malicious"] >= MALICIOUS_FILE_THRESHOLD:
                     return MALICIOUS
+                elif verdict.stats["suspicious"] >= SUSPICIOUS_FILE_THRESHOLD:
+                    return SUSPICIOUS
             except:
                 return ERROR_CODE
         return BENIGN
