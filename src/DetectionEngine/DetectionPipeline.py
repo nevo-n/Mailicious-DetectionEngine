@@ -10,19 +10,19 @@ class DetectionPipeline:
     def __init__(self, active_modules_names, mail):
         self.modules = []
         for module_name in active_modules_names:
-            if module_name == BlackListModule.__str__():
+            if module_name == BlackListModule(mail).__str__():
                 self.modules.append(BlackListModule(mail))
                 continue
-            if module_name == ExternalDataSourcesModule.__str__():
+            if module_name == ExternalDataSourcesModule(mail).__str__():
                 self.modules.append(ExternalDataSourcesModule(mail))
                 continue
-            if module_name == HebrewMailClassifierModule.__str__():
+            if module_name == HebrewMailClassifierModule(mail).__str__():
                 self.modules.append(HebrewMailClassifierModule(mail))
                 continue
-            if module_name == BigDataModule.__str__():
+            if module_name == BigDataModule(mail).__str__():
                 self.modules.append(BigDataModule(mail))
                 continue
-            if module_name == ForensicsModule.__str__():
+            if module_name == ForensicsModule(mail).__str__():
                 self.modules.append(ForensicsModule(mail))
                 continue
     
@@ -62,7 +62,7 @@ def analyze_mail(mail):
         db_handler.save_mail_analysis(mail_id, module, module_verdict)
     
     # get overall verdict (block\allow)
-    decision = db_handler.get_all_analysis_types(mail_id)
+    decision = db_handler.get_email_decision(mail_id)
     
     # block = True, allow = False
     return decision

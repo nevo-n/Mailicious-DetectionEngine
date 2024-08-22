@@ -3,6 +3,7 @@ from enum import Enum
 MALICIOUS = 2
 SUSPICIOUS = 1
 BENIGN = 0
+ERROR_CODE = -1
 
 # regex to find urls and websites within a text
 URL_REGEX = "(https{0,1}\:\/\/\S+|www\.\S+|\S+\.com)[^\w]" # TODO: extend maybe

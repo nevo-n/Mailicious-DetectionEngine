@@ -1,5 +1,6 @@
 import requests
 import hashlib
+import vt
 from src.DBHandler.DBHandler import DBHandler
 from src.DetectionEngine.DetectionModules.Module import Module
 from src.DetectionEngine.consts import (
@@ -14,27 +15,35 @@ from src.DetectionEngine.utils.vt_utils import VT
 
 import asyncio
 import os
-VT_API_KEY = os.getenv("VT_API_KEY")
+from dotenv import load_dotenv
+
 
 # load API keys from .env file
 load_dotenv()
-VT_API_KEY = os.getenv("ATTACHMENTS_FILE_SYSTEM_BASE_FOLDER")
+VT_API_KEY = os.getenv("VT_API_KEY")
 
 class ForensicsModule(Module):
     def __init__(self, mail):
         self.file = mail.get("attachment")
+        
         # if there is an attachment save it in the file system
         if self.file:
             self.file_path = FileSaver().save_file(self.file)
-        # if there isn't - return BENIGN
-        else:
-            return BENIGN
         self.db_handler = DBHandler()
+
+        # Initialize vt client asynchronously
         try:
-            loop = asyncio.get_event_loop()
+            self.loop = asyncio.get_event_loop()
+            if self.loop.is_closed():
+                raise RuntimeError("Event loop was closed")
         except RuntimeError:
-            loop = asyncio.new_event_loop()
-            asyncio.set_event_loop(loop)
+            self.loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(self.loop)
+
+        # Run client initialization within the event loop
+        self.loop.run_until_complete(self._init_client())
+
+    async def _init_client(self):
         self.client = vt.Client(VT_API_KEY)
 
     def hash_verdict(self, hash):
@@ -58,6 +67,10 @@ class ForensicsModule(Module):
         """
         Given a file (a mail attachment) - return wether it is malicious\suspicious\benign
         """
+        # if there isn't an attachment - return BENIGN
+        if not self.file:
+            return BENIGN
+
         hash = calculate_hash(self.file)
 
         file_mime_type = self.file.mimetype
