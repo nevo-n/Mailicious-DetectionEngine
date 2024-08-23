@@ -1,7 +1,7 @@
 import os
 import hashlib
 import datetime
-from src.DetectionEngine.utils.general_utils import calculate_hash, file_base64_to_sha256
+from src.DetectionEngine.utils.general_utils import file_base64_to_sha256
 import base64
 from dotenv import load_dotenv
 

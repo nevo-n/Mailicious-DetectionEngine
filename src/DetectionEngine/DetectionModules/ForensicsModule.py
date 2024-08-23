@@ -9,7 +9,7 @@ from src.DetectionEngine.consts import (
     MimeType,
     OFFICE_MIME_TYPES
 )
-from src.DetectionEngine.utils.general_utils import calculate_hash, file_base64_to_sha256
+from src.DetectionEngine.utils.general_utils import file_base64_to_sha256
 from src.FSManager.FSManager import FileSaver
 from src.DetectionEngine.utils.vt_utils import VT
 

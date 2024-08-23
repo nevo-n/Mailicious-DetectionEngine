@@ -11,14 +11,6 @@ def extract_urls(text: str) -> list[str]:
     urls_stripped = [url.strip(REG_STRIP_CHARS) for url in urls]
     return urls_stripped
 
-def calculate_hash(file):
-    hasher = hashlib.sha256()
-    file.stream.seek(0)  # Ensure the stream is at the beginning
-    buf = file.read()
-    hasher.update(buf)
-    file.stream.seek(0)  # Reset the stream position after reading
-    return hasher.hexdigest()
-
 def file_base64_to_sha256(base64_content):
     file_data = base64.b64decode(base64_content)
     return hashlib.sha256(file_data).hexdigest()
