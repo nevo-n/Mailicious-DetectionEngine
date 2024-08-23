@@ -1,7 +1,8 @@
 import os
 import hashlib
 import datetime
-from src.DetectionEngine.utils.general_utils import calculate_hash
+from src.DetectionEngine.utils.general_utils import calculate_hash, file_base64_to_sha256
+import base64
 from dotenv import load_dotenv
 
 # load API keys from .env file
@@ -20,10 +21,10 @@ class FileSaver:
         if not os.path.exists(self.base_folder):
             os.makedirs(self.base_folder)
 
-    def save_file(self, file):
+    def save_file(self, file_base64):
         current_date = datetime.datetime.now().strftime("%Y-%m-%d")
 
-        file_hash = calculate_hash(file)
+        file_hash = file_base64_to_sha256(file_base64)
 
         # Create the folder path
         folder_path = os.path.join(self.base_folder, current_date)
@@ -34,9 +35,8 @@ class FileSaver:
         destination_path = os.path.join(folder_path, file_hash)
 
         # Save the file
-        file.stream.seek(0)  # Ensure the stream is at the beginning
         with open(destination_path, "wb") as dest_file:
-            dest_file.write(file.read())
+            dest_file.write(base64.b64decode(file_base64))
 
         # Return the absolute path
         return os.path.abspath(destination_path)

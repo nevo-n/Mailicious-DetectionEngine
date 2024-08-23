@@ -1,5 +1,7 @@
 from src.DetectionEngine.consts import URL_REGEX, REG_STRIP_CHARS
 import re
+import hashlib
+import base64
 
 def extract_urls(text: str) -> list[str]:
     """
@@ -16,3 +18,7 @@ def calculate_hash(file):
     hasher.update(buf)
     file.stream.seek(0)  # Reset the stream position after reading
     return hasher.hexdigest()
+
+def file_base64_to_sha256(base64_content):
+    file_data = base64.b64decode(base64_content)
+    return hashlib.sha256(file_data).hexdigest()

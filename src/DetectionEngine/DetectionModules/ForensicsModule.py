@@ -9,7 +9,7 @@ from src.DetectionEngine.consts import (
     MimeType,
     OFFICE_MIME_TYPES
 )
-from src.DetectionEngine.utils.general_utils import calculate_hash
+from src.DetectionEngine.utils.general_utils import calculate_hash, file_base64_to_sha256
 from src.FSManager.FSManager import FileSaver
 from src.DetectionEngine.utils.vt_utils import VT
 
@@ -24,11 +24,11 @@ VT_API_KEY = os.getenv("VT_API_KEY")
 
 class ForensicsModule(Module):
     def __init__(self, mail):
-        self.file = mail.get("attachment")
-        
-        # if there is an attachment save it in the file system
-        if self.file:
-            self.file_path = FileSaver().save_file(self.file)
+        # if there is an attachment save it in the file system, and calculate the file's hash (sha256)
+        if mail.get("attachment")[0]:
+            self.hash = file_base64_to_sha256(mail.get("attachment")[0][1])
+            self.mimetype = mail.get("attachment")[0][0]
+            self.file_path = FileSaver().save_file(mail.get("attachment")[0][1])
         self.db_handler = DBHandler()
 
         # Initialize vt client asynchronously
@@ -56,15 +56,12 @@ class ForensicsModule(Module):
         Given a file (a mail attachment) - return wether it is malicious\suspicious\benign
         """
         # if there isn't an attachment - return BENIGN
-        if not self.file:
+        if not self.file_path:
             return BENIGN
 
-        hash = calculate_hash(self.file)
-
-        file_mime_type = self.file.mimetype
         # if office mime type - send to InQuestLabs for analysis
-        if file_mime_type in OFFICE_MIME_TYPES:
-            hash_verdict = self.hash_verdict(hash)
+        if self.mimetype in OFFICE_MIME_TYPES:
+            hash_verdict = self.hash_verdict(self.hash)
             # if analysis was successful and verdict is malicious - return
             if ((hash_verdict["data"] and hash_verdict["success"]) and 
                 hash_verdict["data"][0]['classification'] == 'MALICIOUS'):
@@ -78,7 +75,7 @@ class ForensicsModule(Module):
         
         # query/scan using vt
         vt = VT(self.client)
-        verdict = vt.provide_file_verdict(hash, self.file_path)
+        verdict = vt.provide_file_verdict(self.hash, self.file_path)
         vt.close()
         return verdict
         
