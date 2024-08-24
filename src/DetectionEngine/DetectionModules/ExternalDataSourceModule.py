@@ -111,6 +111,7 @@ class GeminiModel(Module):
         answer = self.query(f"""
                             The following text is a mail, please classify it as 'suspicious' or 'benign'
                             and return only one word - the classification
+                            (if you have doubt - please say it's 'benign')
 
                             The mail:
                             {self.mail}
@@ -150,6 +151,7 @@ class GroqModel(Module):
         query = f"""
                 The following text is a mail, please classify it as 'suspicious' or 'benign'
                 and return only one word - the classification
+                (if you have doubt - please say it's 'benign')
 
                 The mail:
                 {self.mail}

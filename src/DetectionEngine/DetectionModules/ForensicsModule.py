@@ -25,10 +25,12 @@ VT_API_KEY = os.getenv("VT_API_KEY")
 class ForensicsModule(Module):
     def __init__(self, mail):
         # if there is an attachment save it in the file system, and calculate the file's hash (sha256)
-        if mail.get("attachment")[0]:
+        if mail.get("attachment"):
             self.hash = file_base64_to_sha256(mail.get("attachment")[0][1])
             self.mimetype = mail.get("attachment")[0][0]
             self.file_path = FileSaver().save_file(mail.get("attachment")[0][1])
+        else:
+            self.file_path = None
         self.db_handler = DBHandler()
 
         # Initialize vt client asynchronously
