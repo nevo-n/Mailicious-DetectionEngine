@@ -4,6 +4,7 @@ from src.DetectionEngine.DetectionModules.HebrewMailClassifierModule import Hebr
 from src.DetectionEngine.DetectionModules.BigDataModule import BigDataModule
 from src.DetectionEngine.DetectionModules.ForensicsModule import ForensicsModule
 from src.DBHandler.DBHandler import DBHandler
+from src.FSManager.FSManager import FileSaver
 import json
 
 class DetectionPipeline:
@@ -49,9 +50,14 @@ def analyze_mail(mail):
     # analyze mail in all detection-modules
     modules_verdicts = DetectionPipeline(active_modules_names, json.loads(mail)).analyze()
 
+    mail_for_db = json.loads(mail)
+    if mail_for_db.get("attachment"):
+        file_path = FileSaver().retrieve_file_path(mail_for_db.get("attachment")[0][1])
+        mail_for_db["attachment"] = file_path
+
     try:
         # Save mail in DB
-        create_mail_response = db_handler.save_mail(json.loads(mail))
+        create_mail_response = db_handler.save_mail(mail_for_db)
         # Get mail's ID from responde
         mail_id = create_mail_response["id"]
     except:

@@ -40,3 +40,15 @@ class FileSaver:
 
         # Return the absolute path
         return os.path.abspath(destination_path)
+    
+    def retrieve_file_path(self, file_base64):
+        current_date = datetime.datetime.now().strftime("%Y-%m-%d")
+
+        file_hash = file_base64_to_sha256(file_base64)
+
+        folder_path = os.path.join(self.base_folder, current_date)
+        destination_path = os.path.join(folder_path, file_hash)
+        if os.path.exists(destination_path):
+            return os.path.abspath(destination_path)
+        else:
+            return ""

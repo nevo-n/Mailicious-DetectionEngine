@@ -44,17 +44,19 @@ class DBHandler():
         email_datetime = parsed_date.strftime('%Y-%m-%dT%H:%M:%S')
         subject = mail["subject"]
         content = mail["body"]
+        attachments = mail["attachment"]
 
-        return self._save_mail(sender, receiver, email_datetime, subject, content)
+        return self._save_mail(sender, receiver, email_datetime, subject, content, attachments)
     
-    def _save_mail(self, sender, receiver, email_datetime, subject, content):
+    def _save_mail(self, sender, receiver, email_datetime, subject, content, attachments):
         url = f"{DB_URL}/emails/"
         payload = {
             "sender": sender,
             "recipients": receiver,
             "email_datetime": email_datetime,
             "subject": subject,
-            "content": content
+            "content": content,
+            "attachments": attachments,
         }
         response = requests.post(url, json=payload, headers=self.headers)
         return response.json()
