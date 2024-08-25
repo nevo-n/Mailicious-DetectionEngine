@@ -1,6 +1,7 @@
 import vt
 from src.DetectionEngine.consts import (
-    MALICIOUS, 
+    MALICIOUS,
+    SUSPICIOUS,
     BENIGN, 
     ERROR_CODE,
     MALICIOUS_URL_THRESHOLD, 
@@ -49,7 +50,7 @@ class VT:
             verdict = self.query_url(url)
             if verdict.last_analysis_stats["malicious"] >= MALICIOUS_URL_THRESHOLD:
                 return MALICIOUS
-            elif verdict.last_analysis_stats["suspicious"] >= SUSPICIOUS_URL_THRESHOLD:
+            elif verdict.last_analysis_stats["suspicious"] >= SUSPICIOUS_URL_THRESHOLD or verdict.last_analysis_stats["malicious"] > 0:
                 return SUSPICIOUS
         except:
             try:
@@ -57,7 +58,7 @@ class VT:
                 verdict = self.scan_url(url)
                 if verdict.stats["malicious"] >= MALICIOUS_URL_THRESHOLD:
                     return MALICIOUS
-                elif verdict.stats["suspicious"] >= SUSPICIOUS_URL_THRESHOLD:
+                elif verdict.stats["suspicious"] >= SUSPICIOUS_URL_THRESHOLD or verdict.stats["malicious"] > 0:
                     return SUSPICIOUS
             except:
                 return ERROR_CODE
@@ -68,7 +69,7 @@ class VT:
             verdict = self.query_file_hash(hash)
             if verdict.last_analysis_stats["malicious"] >= MALICIOUS_FILE_THRESHOLD:
                 return MALICIOUS
-            elif verdict.last_analysis_stats["suspicious"] >= SUSPICIOUS_FILE_THRESHOLD:
+            elif verdict.last_analysis_stats["suspicious"] >= SUSPICIOUS_FILE_THRESHOLD or verdict.last_analysis_stats["malicious"] > 0:
                 return SUSPICIOUS
         except:
             try:
@@ -76,7 +77,7 @@ class VT:
                 verdict = self.scan_file(file_path) # file path neede
                 if verdict.stats["malicious"] >= MALICIOUS_FILE_THRESHOLD:
                     return MALICIOUS
-                elif verdict.stats["suspicious"] >= SUSPICIOUS_FILE_THRESHOLD:
+                elif verdict.stats["suspicious"] >= SUSPICIOUS_FILE_THRESHOLD or verdict.stats["malicious"] > 0:
                     return SUSPICIOUS
             except:
                 return ERROR_CODE
