@@ -34,7 +34,10 @@ class BlackListModule(Module):
         """
         This method checks whether one of the given mail SPF IPs are from the country 'country'
         """
-        ip_addresses = re.findall(IP_ADDRESS_REGEX, self.mail["Received-SPF"])
+        if self.mail["Received-SPF"]:
+            ip_addresses = re.findall(IP_ADDRESS_REGEX, self.mail["Received-SPF"])
+        else:
+            ip_addresses = []
         for ip in list(set(ip_addresses)):
             resp = requests.get(URL_IPAPI + ip, params={'fields': 'status,country,country_code'})
             info = resp.json()
