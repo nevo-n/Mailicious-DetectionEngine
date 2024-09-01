@@ -2,6 +2,7 @@ from src.DBHandler.DBHandler import DBHandler
 from src.DetectionEngine.DetectionModules.Module import Module
 import re
 import os
+import torch
 from simpletransformers.classification import ClassificationModel
 import langid
 from dotenv import load_dotenv
@@ -26,6 +27,7 @@ class HebrewMailClassifierModule(Module):
             num_labels=2,
             use_cuda=False
         )
+        model.model.load_state_dict(torch.load(os.path.join(HEBREW_MAIL_CLASSIFIER_PATH, 'pytorch_model.bin'),map_location ='cpu'))
         return model
 
     
